@@ -1,10 +1,10 @@
-﻿{
+{
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "vmname": {
             "type": "string",
-            "defaultValue": "knvm01"
+            "defaultValue": "CGTVM01"
         },
         "vmsize": {
             "type": "string",
@@ -16,18 +16,18 @@
         },
         "username": {
             "type": "string",
-            "defaultValue": "knadm"
+            "defaultValue": "admin-cg"
         },
         "password": {
             "type": "securestring"
         },
         "storageblobname": {
             "type": "string",
-            "defaultValue": "azureblob01"
+            "defaultValue": "cgtblob02"
         },
         "myvnet": {
             "type": "string",
-            "defaultValue": "knvnet07"
+            "defaultValue": "cgtvnet01"
         },
         "addressprefix": {
             "type": "string",
@@ -36,11 +36,19 @@
         "subnetprefix": {
             "type": "string",
             "defaultValue": "10.0.0.0/24"
+        },
+		"dscurl": {
+            "type": "string",
+            "defaultValue": "https://github.com/CarlGT/AzureDeploy/raw/master/DSCExample/azureweb.ps1.zip"
+        },
+        "configurationfunction": {
+            "type": "string",
+            "defaultValue": "azureweb.ps1\\mywebserver"
         }
     },
     "variables": {
-        "storagetemplate": "https://raw.githubusercontent.com/krnese/AzureDeploy/master/Basic/SharedStorageTemplate.json",
-        "networktemplate": "https://raw.githubusercontent.com/krnese/AzureDeploy/master/Basic/SharedNetworkTemplate.json",
+        "storagetemplate": "https://raw.githubusercontent.com/CarlGT/AzureDeploy/master/Basic/SharedStorageTemplate.json",
+        "networktemplate": "https://raw.githubusercontent.com/CarlGT/AzureDeploy/master/Basic/SharedNetworkTemplate.json",
         "nicname": "knnic202",
         "publicnicname": "knpub202test",
         "imagepublisher": "MicrosoftWindowsServer",
@@ -51,7 +59,8 @@
         "osdisk": "winosdisk",
         "vnetID": "[resourceId('Microsoft.Network/virtualnetworks', parameters('myvnet'))]",
         "subnetname": "mysubnet",
-        "subnetref": "[concat(variables('vnetID'),'/subnets/', variables('subnetname'))]"
+        "subnetref": "[concat(variables('vnetID'),'/subnets/', variables('subnetname'))]",
+		"extensionname": "dscExtension"
     },
     "resources": [
         {
@@ -173,6 +182,30 @@
                     ]
                 }
             }
-        }
+        },
+		        {
+			"apiVersion": "2015-05-01-preview",
+			"type": "Microsoft.Compute/virtualmachines/extensions",
+			"name": "[concat(parameters('vmname'), '/', variables('extensionname'))]",
+			"location": "[parameters('location')]",
+			"dependsOn": [
+				"[concat('Microsoft.compute/virtualmachines/', parameters('vmname'))]"
+			],
+			"properties": {
+				"publisher": "Microsoft.Powershell",
+				"type": "DSC",
+				"typeHandlerversion": "2.7",
+				"autoUpgradeMinorVersion": "true",
+				"settings": {
+					"ModulesUrl": "[parameters('dscurl')]",
+					"configurationfunction": "[parameters('configurationfunction')]",
+					"sastoken": "",
+					"properties": {
+						"servername": "[parameters('vmname')]"
+					}
+				}
+			}
+		}
     ]
 }
+

@@ -37,9 +37,13 @@
             "type": "string",
             "defaultValue": "10.0.0.0/24"
         },
-		"dscurl": {
+	"dscurl": {
             "type": "string",
             "defaultValue": "https://github.com/CarlGT/AzureDeploy/raw/master/DSCExample/azureweb.ps1.zip"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "west europe"
         },
         "configurationfunction": {
             "type": "string",
